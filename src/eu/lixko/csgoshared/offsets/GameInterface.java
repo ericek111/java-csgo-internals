@@ -3,17 +3,12 @@ package eu.lixko.csgoshared.offsets;
 import com.sun.jna.Callback;
 import com.sun.jna.CallbackReference;
 import com.sun.jna.Function;
-import com.sun.jna.Native;
 import com.sun.jna.NativeLibrary;
 import com.sun.jna.Pointer;
 
 import eu.lixko.csgointernals.Engine;
-import eu.lixko.csgointernals.Engine.CUserCmd;
 import eu.lixko.csgoshared.util.StringFormat;
-import sun.misc.Unsafe;
 
-import java.nio.ByteBuffer;
-import java.nio.LongBuffer;
 import java.util.ArrayList;
 
 import com.github.jonatino.misc.Cacheable;
@@ -85,6 +80,10 @@ public class GameInterface {
 		System.out.println("Hooking " + index + "in" + this.version + " from " + new_vtf.getLong(Pointer.SIZE * index) + " to " + StringFormat.hex(Pointer.nativeValue(cbFunc)));
 		new_vtf.setLong(Pointer.SIZE * index, Pointer.nativeValue(cbFunc));
 		System.out.println("done: " + StringFormat.hex(new_vtf.getLong(Pointer.SIZE * index)));
+	}
+	
+	public void HookFunction(Hookable cb, int index) {
+		this.HookFunction((Callback) cb, index);
 	}
 
 	public void UnhookFunction(int index) {
