@@ -19,6 +19,7 @@ public class ModuleManager {
 	public void registerModules() {
 		registerModule(new Bunnyhop());
 		registerModule(new Glow());
+		registerModule(new PaintTraverse());
 	}
 
 	public void reloadManager() {

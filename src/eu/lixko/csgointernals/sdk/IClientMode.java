@@ -47,7 +47,6 @@ public class IClientMode extends GameInterface {
 		public abstract boolean callback(Pointer thisptr, float flInputSampleTime, long cmd);
 	}
 	// OR this: public interface hkCreateMove extends Callback { boolean invoke(Pointer thisptr, float flInputSampleTime, long cmd); }
-
 	
 	public static class CUserCmd extends Structure implements Structure.ByReference {
 		public long destructor;

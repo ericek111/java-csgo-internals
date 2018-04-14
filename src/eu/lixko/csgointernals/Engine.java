@@ -2,19 +2,14 @@ package eu.lixko.csgointernals;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.List;
 
 import com.github.jonatino.misc.MemoryBuffer;
 import com.github.jonatino.process.Module;
 import com.github.jonatino.process.Process;
 import com.github.jonatino.process.Processes;
-import com.sun.jna.Callback;
-import com.sun.jna.Function;
-import com.sun.jna.Pointer;
-import com.sun.jna.Structure;
 
 import eu.lixko.csgointernals.Client;
+import eu.lixko.csgoshared.offsets.GameInterface;
 import eu.lixko.csgoshared.offsets.Offsets;
 import eu.lixko.csgoshared.util.MemoryUtils;
 import eu.lixko.csgoshared.util.StringFormat;
@@ -32,18 +27,7 @@ public final class Engine {
 
 	public static MemoryBuffer entlistbuffer = new MemoryBuffer(Long.BYTES * 4 * 65);
 	public static long tick = 0;
-	public static int isInGame = 0;
-	
-	hkPaintTraverse PaintTraverse = new hkPaintTraverse() {
-		Function origFunc;
-		public void invoke(Pointer thisptr, long vgui_panel, boolean force_repaint, boolean allow_force) {
-			if(origFunc == null) {
-				 origFunc = Offsets.IVPanel.getOriginalFunction(42);
-			}
-			origFunc.invokeVoid(new Object[] {thisptr, vgui_panel, force_repaint, allow_force});
-		}
-	};	
-	
+	public static int isInGame = 0;	
 	
 	static {
 		try {
@@ -64,11 +48,11 @@ public final class Engine {
 		System.out.println("client: " + StringFormat.hex(clientModule.start()) + " - " + StringFormat.hex(clientModule.end()));
 		System.out.println("engine: " + StringFormat.hex(engineModule.start()) + " - " + StringFormat.hex(clientModule.end()));
 
+		//GameInterface.DumpInterfaces();
+		
 		loadOffsets();
 		
-		//Offsets.IClientMode.HookFunction(CreateMove, 25);
-		//Offsets.IVPanel.HookFunction(PaintTraverse, 42);
-		// OverrideViewc.hook(Offsets.IClientMode, 19);
+		
 		
 		System.out.println("Engine initialization complete! Starting client...");
 		Client.theClient.startClient();
@@ -206,10 +190,5 @@ public final class Engine {
 	@FunctionalInterface
 	private interface Clause {
 		boolean get();
-	}
-
-	// void PaintTraverse(void* thisptr, VPANEL vgui_panel, bool force_repaint, bool allow_force)
-	public interface hkPaintTraverse extends Callback {
-		void invoke(Pointer thisptr, long vgui_panel, boolean force_repaint, boolean allow_force);
 	}
 }

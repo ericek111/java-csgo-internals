@@ -7,12 +7,15 @@ import com.sun.jna.NativeLibrary;
 import com.sun.jna.Pointer;
 
 import eu.lixko.csgointernals.Engine;
+import eu.lixko.csgoshared.natives.CLink;
 import eu.lixko.csgoshared.util.StringFormat;
 
 import java.util.ArrayList;
 
 import com.github.jonatino.misc.Cacheable;
 import com.github.jonatino.misc.MemoryBuffer;
+import com.github.jonatino.misc.Strings;
+import com.github.jonatino.natives.unix.dlfcn;
 import com.github.jonatino.process.Module;
 
 public class GameInterface {
@@ -130,5 +133,55 @@ public class GameInterface {
 	public static long GetInterface(String modulename, String version) {
 		Function getif = NativeLibrary.getInstance(modulename).getFunction("CreateInterface");
 		return getif.invokeLong(new Object[] { version, 0 });
+	}
+	
+	public static void DumpInterfaces() {
+		final StringBuilder sb = new StringBuilder();
+		CLink.dl_iterator callback = new CLink.dl_iterator() {
+			public int invoke(Pointer info, long size, long data) {
+				CLink.dl_phdr_info phdr = new CLink.dl_phdr_info(info);
+				phdr.read();
+				System.out.println(phdr.dlpi_name);
+				sb.append(phdr.dlpi_name);
+				sb.append('\n');
+				
+				long library = dlfcn.dlopen(phdr.dlpi_name, dlfcn.RTLD_LAZY);
+				//System.out.println("\tlibrary: " + StringFormat.hex(library));
+				if(library == 0)
+					return 0;
+				long interfaces_sym = dlfcn.dlsym(library, "s_pInterfaceRegs");
+				//System.out.println("\tinterfaces_sym: " + StringFormat.hex(interfaces_sym));
+				dlfcn.dlclose(library);
+				if(interfaces_sym == 0)
+					return 0;
+				
+				long cur_interface = Engine.unsafe.getLong(interfaces_sym);
+				//System.out.println("\tcur_interface: " + StringFormat.hex(cur_interface));
+				
+				while(cur_interface != 0) {
+					sb.append('\t');
+					long name = Engine.engineModule().readLong(cur_interface + 8);
+					cur_interface = Engine.engineModule().readLong(cur_interface + 16);
+					//System.out.println("\tname: " + name + " / next: " + StringFormat.hex(cur_interface));
+					if(name == 0)
+						continue;
+					
+					byte[] bytes = Cacheable.array(255);
+					Cacheable.pointer(name).read(0, bytes, 0, 255);
+					String symbol = Strings.transform(bytes);					
+					System.out.println("\t" + symbol);
+					//String symbol = Engine.engineModule().readString(name, 255);
+					sb.append(symbol);
+					sb.append('\n');
+				}
+				sb.append('\n');
+				
+				return 0;
+			}
+		};
+		System.out.println("INTERFACE DUMP: ");
+		System.out.println(sb.toString());
+		
+		CLink.INSTANCE.dl_iterate_phdr(callback, 0);
 	}
 }

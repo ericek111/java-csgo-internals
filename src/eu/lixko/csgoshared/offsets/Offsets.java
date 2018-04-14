@@ -5,6 +5,10 @@ import com.sun.jna.NativeLibrary;
 
 import eu.lixko.csgointernals.Engine;
 import eu.lixko.csgointernals.sdk.IClientMode;
+import eu.lixko.csgointernals.sdk.IEngineClient;
+import eu.lixko.csgointernals.sdk.IClientEntityList;
+import eu.lixko.csgointernals.sdk.ISurface;
+import eu.lixko.csgointernals.sdk.IVPanel;
 import eu.lixko.csgoshared.util.StringFormat;
 
 public final class Offsets {
@@ -92,10 +96,11 @@ public final class Offsets {
 	public static NetvarDumper netvars = new NetvarDumper();
 	
 	// Interfaces
-	public static GameInterface IEngineClient;
-	public static GameInterface IClientEntityList;
+	public static IEngineClient IEngineClient;
+	public static IClientEntityList IClientEntityList;
 	public static IClientMode IClientMode;
-	public static GameInterface IVPanel;
+	public static IVPanel IVPanel;
+	public static ISurface ISurface;
 
 	public static void load() {		
 		
@@ -103,9 +108,10 @@ public final class Offsets {
 		long if_IClientMode = Engine.clientModule().GetAbsoluteAddress(ccsmodemanager_init, 3, 7);
 		IClientMode = new IClientMode(Engine.clientModule(), if_IClientMode);
 
-		IEngineClient = new GameInterface(Engine.engineModule(), "./bin/linux64/engine_client.so", "VEngineClient014");
-		IClientEntityList = new GameInterface(Engine.engineModule(), "./csgo/bin/linux64/client_client.so", "VClientEntityList003");
-		//IVPanel = new GameInterface(Engine.engineModule(), "./bin/linux64/vgui2_client.so", "VGUI_Panel");
+		IEngineClient = new IEngineClient(Engine.engineModule(), "./bin/linux64/engine_client.so", "VEngineClient014");
+		IClientEntityList = new IClientEntityList(Engine.engineModule(), "./csgo/bin/linux64/client_client.so", "VClientEntityList003");
+		ISurface = new ISurface(Engine.engineModule(), "./bin/linux64/vguimatsurface_client.so", "VGUI_Surface031");
+		IVPanel = new IVPanel(Engine.engineModule(), "./bin/linux64/vgui2_client.so", "VGUI_Panel009");
 		
 		//Engine.clientModule().write(Engine.clientModule().start() + 0x789f2B, new MemoryBuffer(new byte[] { (byte) 0x90, (byte) 0x90, (byte) 0x90, (byte) 0x90, (byte) 0x90 }));		
 		long clientclassheadlea = PatternScanner.getAddressForPattern(Engine.clientModule(), CLIENTCLASSHEAD_SIGNATURE) + 26;
