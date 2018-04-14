@@ -1,8 +1,8 @@
 package eu.lixko.csgoshared.util;
 
 public class ProfilerUtil {
-	private static final ThreadLocal<Long> firstnanos = ThreadLocal.withInitial(() -> new Long(0));
-	private static final ThreadLocal<Long> lastnanos = ThreadLocal.withInitial(() -> new Long(0));
+	private static final ThreadLocal<Long> firstnanos = ThreadLocal.withInitial(() -> 0l);
+	private static final ThreadLocal<Long> lastnanos = ThreadLocal.withInitial(() -> 0l);
 	
 	public static void start() {
 		firstnanos.set(System.nanoTime());
