@@ -12,3 +12,4 @@ Heavily based on my [external Java cheat](https://github.com/ericek111/java-csgo
 
 ### Credits:
 - [aixxe](https://aixxe.net/) for his very educative tutorials, [VMThook](https://github.com/aixxe/vmthook/blob/master/vmthook.h) and [CS:GO internal bhop](https://github.com/aixxe/csgo-bhop-linux) which I based my cheat on.
+- [Jonatino](https://github.com/Jonatino) for his great work on Java cheats and [Java-Memory-Manipulation](https://github.com/Jonatino/Java-Memory-Manipulation) library.
