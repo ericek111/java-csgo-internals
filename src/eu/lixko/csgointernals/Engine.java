@@ -15,7 +15,6 @@ import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 
 import eu.lixko.csgointernals.Client;
-import eu.lixko.csgoshared.natives.CLink;
 import eu.lixko.csgoshared.offsets.Offsets;
 import eu.lixko.csgoshared.util.MemoryUtils;
 import eu.lixko.csgoshared.util.StringFormat;
@@ -35,49 +34,17 @@ public final class Engine {
 	public static long tick = 0;
 	public static int isInGame = 0;
 	
-	hkCreateMove createMoveHook = new hkCreateMove() {
+	hkPaintTraverse PaintTraverse = new hkPaintTraverse() {
 		Function origFunc;
-		public boolean orig(Object[] params) {
-			Boolean origRet = (Boolean) origFunc.invoke(Boolean.class, params);
-			return origRet.booleanValue();
-		}
-		public boolean invoke(Pointer thisptr, float flInputSampleTime, long cmd) {
+		public void invoke(Pointer thisptr, long vgui_panel, boolean force_repaint, boolean allow_force) {
 			if(origFunc == null) {
-				 origFunc = Offsets.IClientMode.getOriginalFunction(25);
+				 origFunc = Offsets.IVPanel.getOriginalFunction(42);
 			}
-			
-			while(true) {
-				if(cmd == 0) 
-					break;
-				
-				int lpi = Offsets.VEngineClient.getOriginalFunction(12).invokeInt(new Object[] {Offsets.VClientEntityList.base()});
-				long localplayer = Offsets.VClientEntityList.getOriginalFunction(3).invokeLong(new Object[] { Offsets.VClientEntityList.base(), lpi });
-				
-				if(localplayer == 0) 
-					break;
-				
-				int cmdnum = unsafe.getInt(cmd + 8); // command_number
-				if(cmdnum == 0)
-					break;
-
-				int buttons = unsafe.getInt(cmd + 52);
-				if((buttons & (1 << 1)) == 0) // cmd->buttons & IN_JUMP
-					break;
-
-				int flags = unsafe.getInt(localplayer + 0x138);
-				if((flags & 1) == 0) {
-					buttons &= ~(1 << 1);
-					unsafe.putInt(cmd + 52, buttons);
-				}
-				
-				break;
-			}
-			
-			Boolean origRet = (Boolean) origFunc.invoke(Boolean.class, new Object[] { thisptr, flInputSampleTime, cmd});
-			return origRet.booleanValue();
+			origFunc.invokeVoid(new Object[] {thisptr, vgui_panel, force_repaint, allow_force});
 		}
-	};
-
+	};	
+	
+	
 	static {
 		try {
 			Field field = Unsafe.class.getDeclaredField("theUnsafe");
@@ -87,8 +54,8 @@ public final class Engine {
 			throw new RuntimeException(e);
 		}
 	}
-
-	public void init() throws InterruptedException, IOException {
+	
+	public void init() throws InterruptedException, IOException {		
 		String clientName = "client_client.so";
 		String engineName = "engine_client.so";
 
@@ -99,11 +66,15 @@ public final class Engine {
 
 		loadOffsets();
 		
-		Offsets.IClientMode.HookFunction(createMoveHook, 25);
+		//Offsets.IClientMode.HookFunction(CreateMove, 25);
+		//Offsets.IVPanel.HookFunction(PaintTraverse, 42);
+		// OverrideViewc.hook(Offsets.IClientMode, 19);
 		
 		System.out.println("Engine initialization complete! Starting client...");
 		Client.theClient.startClient();
-
+		
+		Client.theClient.eventHandler.onEngineLoaded();
+		
 		/*
 		 * Client.theClient.commandManager.executeCommand("exec autoexec.txt");
 		 * Client.theClient.eventHandler.onEngineLoaded();
@@ -236,40 +207,9 @@ public final class Engine {
 	private interface Clause {
 		boolean get();
 	}
-	
-	interface cppDestructor extends Callback {
-		void invoke();
-	}
-	
-	public class CUserCmd extends Structure implements Structure.ByReference {
-		public long destructor;
-		public int command_number;
-		public int tick_count;
-		public float[] viewangles = new float[3];
-		public float[] aimdirection = new float[3];
-		public float forwardmove;
-		public float sidemove;
-		public float upmove;
-		public int buttons;
-		public byte impulse;
-		public int weaponselect;
-		public int weaponsubtype;
-		public int random_seed;
-		public short mousedx;
-		public short mousedy;
-		public boolean hasbeenpredicted;
-		public float[] headangles = new float[3];
-		public float[] headoffset = new float[3];
 
-		@Override
-		protected List<String> getFieldOrder() {
-			return Arrays.asList("destructor", "command_number", "tick_count", "viewangles", "aimdirection", "forwardmove", "sidemove", "upmove", "buttons", "impulse", "weaponselect", "weaponsubtype", "random_seed", "mousedx", "mousedy", "hasbeenpredicted", "headangles", "headoffset");
-		}
+	// void PaintTraverse(void* thisptr, VPANEL vgui_panel, bool force_repaint, bool allow_force)
+	public interface hkPaintTraverse extends Callback {
+		void invoke(Pointer thisptr, long vgui_panel, boolean force_repaint, boolean allow_force);
 	}
-
-	// bool hkCreateMove(void* thisptr, float flInputSampleTime, CUserCmd* cmd)
-	public interface hkCreateMove extends Callback {
-		boolean invoke(Pointer thisptr, float flInputSampleTime, long cmd);
-	}
-
 }

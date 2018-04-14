@@ -1,14 +1,10 @@
 package eu.lixko.csgoshared.offsets;
 
-import java.util.Arrays;
-
-import com.github.jonatino.misc.MemoryBuffer;
-import com.github.jonatino.natives.unix.dlfcn;
 import com.sun.jna.Function;
 import com.sun.jna.NativeLibrary;
-import com.sun.jna.Pointer;
 
 import eu.lixko.csgointernals.Engine;
+import eu.lixko.csgointernals.sdk.IClientMode;
 import eu.lixko.csgoshared.util.StringFormat;
 
 public final class Offsets {
@@ -96,25 +92,20 @@ public final class Offsets {
 	public static NetvarDumper netvars = new NetvarDumper();
 	
 	// Interfaces
-	public static long if_VEngineClient;
-	public static long if_VClientEntityList;
-	public static long if_IClientMode;
-	
-	public static GameInterface VEngineClient;
-	public static GameInterface VClientEntityList;
-	public static GameInterface IClientMode;
+	public static GameInterface IEngineClient;
+	public static GameInterface IClientEntityList;
+	public static IClientMode IClientMode;
+	public static GameInterface IVPanel;
 
 	public static void load() {		
 		
 		long ccsmodemanager_init = PatternScanner.getAddressForPattern(Engine.clientModule(), CCSMODEMANAGER_INIT_SIGNATURE);
-		if_IClientMode = Engine.clientModule().GetAbsoluteAddress(ccsmodemanager_init, 3, 7);
-		
-		if_VEngineClient = GetInterface("./bin/linux64/engine_client.so", "VEngineClient014");
-		if_VClientEntityList = GetInterface("./csgo/bin/linux64/client_client.so", "VClientEntityList003");
-		
-		VEngineClient = new GameInterface(Engine.engineModule(), "./bin/linux64/engine_client.so", "VEngineClient014");
-		VClientEntityList = new GameInterface(Engine.engineModule(), "./csgo/bin/linux64/client_client.so", "VClientEntityList003");
-		IClientMode = new GameInterface(Engine.clientModule(), if_IClientMode);
+		long if_IClientMode = Engine.clientModule().GetAbsoluteAddress(ccsmodemanager_init, 3, 7);
+		IClientMode = new IClientMode(Engine.clientModule(), if_IClientMode);
+
+		IEngineClient = new GameInterface(Engine.engineModule(), "./bin/linux64/engine_client.so", "VEngineClient014");
+		IClientEntityList = new GameInterface(Engine.engineModule(), "./csgo/bin/linux64/client_client.so", "VClientEntityList003");
+		//IVPanel = new GameInterface(Engine.engineModule(), "./bin/linux64/vgui2_client.so", "VGUI_Panel");
 		
 		//Engine.clientModule().write(Engine.clientModule().start() + 0x789f2B, new MemoryBuffer(new byte[] { (byte) 0x90, (byte) 0x90, (byte) 0x90, (byte) 0x90, (byte) 0x90 }));		
 		long clientclassheadlea = PatternScanner.getAddressForPattern(Engine.clientModule(), CLIENTCLASSHEAD_SIGNATURE) + 26;

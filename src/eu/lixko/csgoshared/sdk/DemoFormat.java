@@ -1,7 +1,6 @@
 package eu.lixko.csgoshared.sdk;
 
 import eu.lixko.csgoshared.util.BufferStruct;
-import java.nio.charset.StandardCharsets;
 
 public class DemoFormat {
 	public static final int MAX_OSPATH = 260;
