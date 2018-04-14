@@ -55,18 +55,20 @@ public class GameInterface {
 			// we don't need to worry about using Cacheable.pointer, since it's passed by value anyway:
 			// https://github.com/java-native-access/jna/blob/master/src/com/sun/jna/Function.java#L272
 			// Cacheable.pointer(fptr)
-			original_funcs.add(Function.getFunction(new Pointer(fptr)));
+			original_funcs.add(Function.getFunction(Cacheable.pointer(fptr)));
 		}
 		
 		int bufsize = Pointer.SIZE * this.totalFunctions;
 		new_vtf = new MemoryBuffer(bufsize);
-		new_vtf.setBytes(0, new Pointer(this.origvftptr), bufsize);
+		new_vtf.setBytes(0, Cacheable.pointer(this.origvftptr), bufsize);
 		System.out.println("old: " + StringFormat.hex(module.readLong(this.baseclass)) + " > " + Pointer.nativeValue(new_vtf));
-		Engine.unsafe.putLong(this.baseclass, Pointer.nativeValue(new_vtf));
-		System.out.println("new: " + StringFormat.hex(module.readLong(this.baseclass)));
 		module.writeLong(this.baseclass, Pointer.nativeValue(new_vtf));
-		
+
 		System.out.println("new: " + StringFormat.hex(module.readLong(this.baseclass)));
+		Engine.unsafe.putLong(this.baseclass, Pointer.nativeValue(new_vtf));
+
+		System.out.println("new: " + StringFormat.hex(module.readLong(this.baseclass)));
+		
 		//long newvtf = Native.malloc(this.totalFunctions * Pointer.SIZE);
 		
 		System.out.println("> Found " + this.totalFunctions + " methods in " + version);
