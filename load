@@ -1,4 +1,5 @@
 #!/bin/sh
+#Credit: Aixxe @ aixxe.net
 
 csgo_pid=$(pidof csgo_linux64)
 if [ -z "$csgo_pid" ]; then
@@ -6,13 +7,9 @@ if [ -z "$csgo_pid" ]; then
     exit 1
 fi
 
-if [ ! -d ".git" ]; then
-    /bin/echo "We have detected that you have downloaded aimtux-master.zip from the GitHub website. This is the WRONG way to download AimTux. Please download AimTux with the command 'git clone --recursive https://github.com/AimTuxOfficial/AimTux'"
-fi
 
-#Credit: Aixxe @ aixxe.net
-if grep -q libctojvm_bhop.so /proc/$csgo_pid/maps; then
-    /bin/echo -e "\e[33mAimTux is already injected... Aborting...\e[0m"
+if grep -q libjvmloader.so /proc/$csgo_pid/maps; then
+    /bin/echo -e "\e[33mJVM is already injected... Aborting...\e[0m"
     exit
 fi
 
@@ -20,7 +17,7 @@ input="$(
 sudo gdb -n -q -batch \
   -ex "attach $csgo_pid" \
   -ex "set \$dlopen = (void*(*)(char*, int)) dlopen" \
-  -ex "call \$dlopen(\"$(pwd)/build/libctojvm_bhop.so\", 1)" \
+  -ex "call \$dlopen(\"$(pwd)/bin/libjvmloader.so\", 1)" \
   -ex "detach" \
   -ex "quit"
 )"
